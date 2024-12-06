@@ -1,0 +1,77 @@
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report, accuracy_score
+import matplotlib.pyplot as plt
+
+# Load the MNIST dataset
+digits = datasets.load_digits()
+
+# Display some example images
+plt.figure(figsize=(8, 4))
+for index, (image, label) in enumerate(zip(digits.images[:8], digits.target[:8])):
+    plt.subplot(2, 4, index + 1)
+    plt.imshow(image, cmap=plt.cm.gray_r)
+    plt.title(f"Label: {label}")
+    plt.axis('off')
+plt.show()
+
+# Flatten the images and split the dataset
+X = digits.images.reshape((len(digits.images), -1))
+y = digits.target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train the SVM classifier
+svm_model = SVC(kernel='linear', random_state=42)
+svm_model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = svm_model.predict(X_test)
+
+# Evaluate the model
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Visualize some test results
+plt.figure(figsize=(8, 4))
+for index, (image, pred, actual) in enumerate(zip(X_test[:8], y_pred[:8], y_test[:8])):
+    plt.subplot(2, 4, index + 1)
+    plt.imshow(image.reshape(8, 8), cmap=plt.cm.gray_r)
+    plt.title(f"Pred: {pred}, Actual: {actual}")
+    plt.axis('off')
+plt.show()
+
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Create an ImageDataGenerator instance
+datagen = ImageDataGenerator(
+    rotation_range=10,      # Rotate images by up to 10 degrees
+    width_shift_range=0.1,  # Shift images horizontally by 10% of width
+    height_shift_range=0.1, # Shift images vertically by 10% of height
+    zoom_range=0.1,         # Zoom in on images by 10%
+    shear_range=10,         # Shear images by 10 degrees
+    fill_mode='nearest'     # Fill missing pixels after transformations
+)
+
+# Load a sample image (e.g., from MNIST dataset)
+from tensorflow.keras.datasets import mnist
+(x_train, y_train), _ = mnist.load_data()
+x_sample = x_train[0].reshape((1, 28, 28, 1))  # Reshape to 4D for the generator
+
+# Generate augmented images
+augmented_images = [next(datagen.flow(x_sample, batch_size=1))[0].reshape(28, 28) for _ in range(5)]
+
+# Plot original and augmented images
+plt.figure(figsize=(10, 2))
+plt.subplot(1, 6, 1)
+plt.imshow(x_train[0], cmap='gray')
+plt.title("Original")
+for i, img in enumerate(augmented_images):
+    plt.subplot(1, 6, i + 2)
+    plt.imshow(img, cmap='gray')
+    plt.title(f"Aug {i+1}")
+plt.tight_layout()
+plt.show()
